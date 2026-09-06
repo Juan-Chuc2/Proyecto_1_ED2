@@ -1,0 +1,14 @@
+C:\Users\Juan Diego\Desktop\VSC\proyecto_1_ED2\bin\Debug\net10.0\proyecto_1_ED2.exe
+C:\Users\Juan Diego\Desktop\VSC\proyecto_1_ED2\bin\Debug\net10.0\proyecto_1_ED2.deps.json
+C:\Users\Juan Diego\Desktop\VSC\proyecto_1_ED2\bin\Debug\net10.0\proyecto_1_ED2.runtimeconfig.json
+C:\Users\Juan Diego\Desktop\VSC\proyecto_1_ED2\bin\Debug\net10.0\proyecto_1_ED2.dll
+C:\Users\Juan Diego\Desktop\VSC\proyecto_1_ED2\bin\Debug\net10.0\proyecto_1_ED2.pdb
+C:\Users\Juan Diego\Desktop\VSC\proyecto_1_ED2\obj\Debug\net10.0\proyecto_1_ED2.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Juan Diego\Desktop\VSC\proyecto_1_ED2\obj\Debug\net10.0\proyecto_1_ED2.AssemblyInfoInputs.cache
+C:\Users\Juan Diego\Desktop\VSC\proyecto_1_ED2\obj\Debug\net10.0\proyecto_1_ED2.AssemblyInfo.cs
+C:\Users\Juan Diego\Desktop\VSC\proyecto_1_ED2\obj\Debug\net10.0\proyecto_1_ED2.csproj.CoreCompileInputs.cache
+C:\Users\Juan Diego\Desktop\VSC\proyecto_1_ED2\obj\Debug\net10.0\proyecto_1_ED2.dll
+C:\Users\Juan Diego\Desktop\VSC\proyecto_1_ED2\obj\Debug\net10.0\refint\proyecto_1_ED2.dll
+C:\Users\Juan Diego\Desktop\VSC\proyecto_1_ED2\obj\Debug\net10.0\proyecto_1_ED2.pdb
+C:\Users\Juan Diego\Desktop\VSC\proyecto_1_ED2\obj\Debug\net10.0\proyecto_1_ED2.genruntimeconfig.cache
+C:\Users\Juan Diego\Desktop\VSC\proyecto_1_ED2\obj\Debug\net10.0\ref\proyecto_1_ED2.dll
