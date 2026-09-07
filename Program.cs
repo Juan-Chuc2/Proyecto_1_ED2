@@ -9,15 +9,17 @@ public class Libro
     public string Autor { get; set; }
     public string Categoria { get; set; }
     public int CopiasDisponibles { get; set; }
+    public int CopiasTotales { get; set; }
     public int VecesPrestado { get; set; }
 
-    public Libro(int codigo, string titulo, string autor, string categoria, int copiasDisponibles)
+    public Libro(int codigo, string titulo, string autor, string categoria, int copiasDisponibles, int? copiasTotales = null)
     {
         Codigo = codigo;
         Titulo = titulo;
         Autor = autor;
         Categoria = categoria;
         CopiasDisponibles = copiasDisponibles;
+        CopiasTotales = copiasTotales ?? copiasDisponibles;
         VecesPrestado = 0;
     }
 }
@@ -48,6 +50,7 @@ public class ArbolBPlus
 {
     private int orden;
     private int maxClaves;
+    private int minClaves;
     private NodoBPlus raiz;
 
     // RESULTADO DE DIVISIÓN
@@ -68,13 +71,22 @@ public class ArbolBPlus
     {
         this.orden = orden;
         this.maxClaves = orden - 1;
+
+        // Mínimo de claves que debe tener un nodo (no raíz) para estar balanceado.
+        this.minClaves = (orden + 1) / 2 - 1;
+        if (this.minClaves < 1) this.minClaves = 1;
+
         this.raiz = new NodoBPlus(orden, hoja: true);
     }
 
     // INSERTAR
     public void Insertar(Libro libro)
     {
-        if (Buscar(libro.Codigo) != null) return;
+        if (Buscar(libro.Codigo) != null)
+        {
+            Console.WriteLine($"El código {libro.Codigo} ya existe.");
+            return;
+        }
 
         ResultadoDivision? resultado = InsertarRecursivo(raiz, libro);
 
@@ -198,6 +210,296 @@ public class ArbolBPlus
         return BuscarRecursivo(nodo.Hijos[posicion]!, codigo);
     }
 
+    // ELIMINAR
+    public bool Eliminar(int codigo)
+    {
+        if (Buscar(codigo) == null)
+        {
+            Console.WriteLine($"El código {codigo} no existe.");
+            return false;
+        }
+
+        EliminarRecursivo(raiz, codigo);
+
+        // Si la raíz quedó vacía (sin claves), su único hijo pasa a ser la nueva raíz.
+        if (!raiz.Hoja && raiz.NumClaves == 0) raiz = raiz.Hijos[0]!;
+
+        Console.WriteLine($"Libro con código {codigo} eliminado.");
+        return true;
+    }
+
+    private void EliminarRecursivo(NodoBPlus nodo, int codigo)
+    {
+        if (nodo.Hoja)
+        {
+            EliminarDeHoja(nodo, codigo);
+            return;
+        }
+
+        int posicion = 0;
+        while (posicion < nodo.NumClaves && codigo >= nodo.Claves[posicion]) posicion++;
+
+        NodoBPlus hijo = nodo.Hijos[posicion]!;
+        EliminarRecursivo(hijo, codigo);
+
+        if (EstaEnUnderflow(hijo)) CorregirUnderflow(nodo, posicion);
+    }
+
+    private void EliminarDeHoja(NodoBPlus hoja, int codigo)
+    {
+        int indice = -1;
+        for (int i = 0; i < hoja.NumClaves; i++)
+        {
+            if (hoja.Claves[i] == codigo)
+            {
+                indice = i;
+                break;
+            }
+        }
+
+        if (indice == -1) return;
+
+        for (int i = indice; i < hoja.NumClaves - 1; i++)
+        {
+            hoja.Claves[i] = hoja.Claves[i + 1];
+            hoja.Libros[i] = hoja.Libros[i + 1];
+        }
+
+        hoja.Claves[hoja.NumClaves - 1] = 0;
+        hoja.Libros[hoja.NumClaves - 1] = null;
+        hoja.NumClaves--;
+    }
+
+    private bool EstaEnUnderflow(NodoBPlus nodo)
+    {
+        return nodo.NumClaves < minClaves;
+    }
+
+    private void CorregirUnderflow(NodoBPlus padre, int posicion)
+    {
+        NodoBPlus hijo = padre.Hijos[posicion]!;
+        NodoBPlus? hermanoIzquierdo = posicion > 0 ? padre.Hijos[posicion - 1] : null;
+        NodoBPlus? hermanoDerecho = posicion < padre.NumClaves ? padre.Hijos[posicion + 1] : null;
+
+        if (hijo.Hoja)
+        {
+            if (hermanoIzquierdo != null && hermanoIzquierdo.NumClaves > minClaves)
+            {
+                PrestarDeIzquierdaHoja(padre, posicion);
+                return;
+            }
+
+            if (hermanoDerecho != null && hermanoDerecho.NumClaves > minClaves)
+            {
+                PrestarDeDerechaHoja(padre, posicion);
+                return;
+            }
+
+            if (hermanoIzquierdo != null) FusionarHojas(padre, posicion - 1);
+            else FusionarHojas(padre, posicion);
+        }
+        else
+        {
+            if (hermanoIzquierdo != null && hermanoIzquierdo.NumClaves > minClaves)
+            {
+                PrestarDeIzquierdaInterno(padre, posicion);
+                return;
+            }
+
+            if (hermanoDerecho != null && hermanoDerecho.NumClaves > minClaves)
+            {
+                PrestarDeDerechaInterno(padre, posicion);
+                return;
+            }
+
+            if (hermanoIzquierdo != null) FusionarInternos(padre, posicion - 1);
+            else FusionarInternos(padre, posicion);
+        }
+    }
+
+    private void PrestarDeIzquierdaHoja(NodoBPlus padre, int posicion)
+    {
+        NodoBPlus hijo = padre.Hijos[posicion]!;
+        NodoBPlus hermanoIzquierdo = padre.Hijos[posicion - 1]!;
+
+        for (int i = hijo.NumClaves; i > 0; i--)
+        {
+            hijo.Claves[i] = hijo.Claves[i - 1];
+            hijo.Libros[i] = hijo.Libros[i - 1];
+        }
+
+        int ultimo = hermanoIzquierdo.NumClaves - 1;
+        hijo.Claves[0] = hermanoIzquierdo.Claves[ultimo];
+        hijo.Libros[0] = hermanoIzquierdo.Libros[ultimo];
+
+        hermanoIzquierdo.Claves[ultimo] = 0;
+        hermanoIzquierdo.Libros[ultimo] = null;
+
+        hijo.NumClaves++;
+        hermanoIzquierdo.NumClaves--;
+        padre.Claves[posicion - 1] = hijo.Claves[0];
+    }
+
+    private void PrestarDeDerechaHoja(NodoBPlus padre, int posicion)
+    {
+        NodoBPlus hijo = padre.Hijos[posicion]!;
+        NodoBPlus hermanoDerecho = padre.Hijos[posicion + 1]!;
+
+        hijo.Claves[hijo.NumClaves] = hermanoDerecho.Claves[0];
+        hijo.Libros[hijo.NumClaves] = hermanoDerecho.Libros[0];
+        hijo.NumClaves++;
+
+        for (int i = 0; i < hermanoDerecho.NumClaves - 1; i++)
+        {
+            hermanoDerecho.Claves[i] = hermanoDerecho.Claves[i + 1];
+            hermanoDerecho.Libros[i] = hermanoDerecho.Libros[i + 1];
+        }
+
+        hermanoDerecho.Claves[hermanoDerecho.NumClaves - 1] = 0;
+        hermanoDerecho.Libros[hermanoDerecho.NumClaves - 1] = null;
+        hermanoDerecho.NumClaves--;
+        padre.Claves[posicion] = hermanoDerecho.Claves[0];
+    }
+
+    private void FusionarHojas(NodoBPlus padre, int indiceIzquierdo)
+    {
+        NodoBPlus izquierdo = padre.Hijos[indiceIzquierdo]!;
+        NodoBPlus derecho = padre.Hijos[indiceIzquierdo + 1]!;
+
+        for (int i = 0; i < derecho.NumClaves; i++)
+        {
+            izquierdo.Claves[izquierdo.NumClaves + i] = derecho.Claves[i];
+            izquierdo.Libros[izquierdo.NumClaves + i] = derecho.Libros[i];
+        }
+
+        izquierdo.NumClaves += derecho.NumClaves;
+        izquierdo.Siguiente = derecho.Siguiente;
+
+        for (int i = indiceIzquierdo; i < padre.NumClaves - 1; i++)
+        {
+            padre.Claves[i] = padre.Claves[i + 1];
+        }
+
+        for (int i = indiceIzquierdo + 1; i < padre.NumClaves; i++)
+        {
+            padre.Hijos[i] = padre.Hijos[i + 1];
+        }
+
+        padre.Hijos[padre.NumClaves] = null;
+        padre.NumClaves--;
+    }
+
+    private void PrestarDeIzquierdaInterno(NodoBPlus padre, int posicion)
+    {
+        NodoBPlus hijo = padre.Hijos[posicion]!;
+        NodoBPlus hermanoIzquierdo = padre.Hijos[posicion - 1]!;
+
+        for (int i = hijo.NumClaves; i > 0; i--) hijo.Claves[i] = hijo.Claves[i - 1];
+        for (int i = hijo.NumClaves + 1; i > 0; i--) hijo.Hijos[i] = hijo.Hijos[i - 1];
+
+        hijo.Claves[0] = padre.Claves[posicion - 1];
+        hijo.Hijos[0] = hermanoIzquierdo.Hijos[hermanoIzquierdo.NumClaves];
+        hijo.NumClaves++;
+
+        padre.Claves[posicion - 1] = hermanoIzquierdo.Claves[hermanoIzquierdo.NumClaves - 1];
+
+        hermanoIzquierdo.Hijos[hermanoIzquierdo.NumClaves] = null;
+        hermanoIzquierdo.Claves[hermanoIzquierdo.NumClaves - 1] = 0;
+        hermanoIzquierdo.NumClaves--;
+    }
+
+    private void PrestarDeDerechaInterno(NodoBPlus padre, int posicion)
+    {
+        NodoBPlus hijo = padre.Hijos[posicion]!;
+        NodoBPlus hermanoDerecho = padre.Hijos[posicion + 1]!;
+
+        hijo.Claves[hijo.NumClaves] = padre.Claves[posicion];
+        hijo.Hijos[hijo.NumClaves + 1] = hermanoDerecho.Hijos[0];
+        hijo.NumClaves++;
+
+        padre.Claves[posicion] = hermanoDerecho.Claves[0];
+
+        for (int i = 0; i < hermanoDerecho.NumClaves - 1; i++) hermanoDerecho.Claves[i] = hermanoDerecho.Claves[i + 1];
+        for (int i = 0; i < hermanoDerecho.NumClaves; i++) hermanoDerecho.Hijos[i] = hermanoDerecho.Hijos[i + 1];
+
+        hermanoDerecho.Hijos[hermanoDerecho.NumClaves] = null;
+        hermanoDerecho.NumClaves--;
+    }
+
+    private void FusionarInternos(NodoBPlus padre, int indiceIzquierdo)
+    {
+        NodoBPlus izquierdo = padre.Hijos[indiceIzquierdo]!;
+        NodoBPlus derecho = padre.Hijos[indiceIzquierdo + 1]!;
+
+        izquierdo.Claves[izquierdo.NumClaves] = padre.Claves[indiceIzquierdo];
+        izquierdo.NumClaves++;
+
+        for (int i = 0; i < derecho.NumClaves; i++)
+        {
+            izquierdo.Claves[izquierdo.NumClaves + i] = derecho.Claves[i];
+        }
+
+        for (int i = 0; i <= derecho.NumClaves; i++)
+        {
+            izquierdo.Hijos[izquierdo.NumClaves + i] = derecho.Hijos[i];
+        }
+
+        izquierdo.NumClaves += derecho.NumClaves;
+
+        for (int i = indiceIzquierdo; i < padre.NumClaves - 1; i++) padre.Claves[i] = padre.Claves[i + 1];
+        for (int i = indiceIzquierdo + 1; i < padre.NumClaves; i++) padre.Hijos[i] = padre.Hijos[i + 1];
+
+        padre.Hijos[padre.NumClaves] = null;
+        padre.NumClaves--;
+    }
+
+    // PRESTAR UN LIBRO (baja CopiasDisponibles, sube VecesPrestado)
+    public bool Prestar(int codigo)
+    {
+        Libro? libro = Buscar(codigo);
+
+        if (libro == null)
+        {
+            Console.WriteLine($"El código {codigo} no existe.");
+            return false;
+        }
+
+        if (libro.CopiasDisponibles <= 0)
+        {
+            Console.WriteLine($"No hay copias disponibles de '{libro.Titulo}' (código {libro.Codigo}).");
+            return false;
+        }
+
+        libro.CopiasDisponibles--;
+        libro.VecesPrestado++;
+
+        Console.WriteLine($"Se prestó '{libro.Titulo}'. Copias disponibles: {libro.CopiasDisponibles}. Veces prestado: {libro.VecesPrestado}.");
+        return true;
+    }
+
+    // DEVOLVER UN LIBRO (sube CopiasDisponibles, nunca más allá de CopiasTotales)
+    public bool Devolver(int codigo)
+    {
+        Libro? libro = Buscar(codigo);
+
+        if (libro == null)
+        {
+            Console.WriteLine($"El código {codigo} no existe.");
+            return false;
+        }
+
+        if (libro.CopiasDisponibles >= libro.CopiasTotales)
+        {
+            Console.WriteLine($"No se puede devolver '{libro.Titulo}': ya están las {libro.CopiasTotales} copias en la biblioteca.");
+            return false;
+        }
+
+        libro.CopiasDisponibles++;
+
+        Console.WriteLine($"Se devolvió '{libro.Titulo}'. Copias disponibles: {libro.CopiasDisponibles}/{libro.CopiasTotales}.");
+        return true;
+    }
+
     // MOSTRAR ARBOL
     public void Mostrar()
     {
@@ -238,31 +540,28 @@ public class ArbolBPlus
     // MOSTRAR LIBROS
     public void MostrarLibros()
     {
-        MostrarLibrosRecursivo(raiz);
-    }
-
-    private void MostrarLibrosRecursivo(NodoBPlus nodo)
-    {
-        if (nodo.Hoja)
+        NodoBPlus? hoja = PrimeraHoja();
+        if (hoja == null || hoja.NumClaves == 0)
         {
-            for (int i = 0; i < nodo.NumClaves; i++)
-            {
-                Libro? libro = nodo.Libros[i];
-                if (libro != null)
-                {
-                    Console.WriteLine($"Código: {libro.Codigo} | Título: {libro.Titulo} | Autor: {libro.Autor} | Categoría: {libro.Categoria} | Copias: {libro.CopiasDisponibles}");
-                }
-            }
+            Console.WriteLine("No hay libros registrados.");
             return;
         }
 
-        for (int i = 0; i <= nodo.NumClaves; i++)
+        while (hoja != null)
         {
-            if (nodo.Hijos[i] != null) MostrarLibrosRecursivo(nodo.Hijos[i]!);
+            for (int i = 0; i < hoja.NumClaves; i++)
+            {
+                Libro? libro = hoja.Libros[i];
+                if (libro != null)
+                {
+                    Console.WriteLine($"Código: {libro.Codigo} | Título: {libro.Titulo} | Autor: {libro.Autor} | Categoría: {libro.Categoria} | Copias: {libro.CopiasDisponibles}/{libro.CopiasTotales} | Prestado: {libro.VecesPrestado} veces");
+                }
+            }
+            hoja = hoja.Siguiente;
         }
     }
 
-    //  PERSISTENCIA EN CSV  
+    // PERSISTENCIA EN CSV
     private NodoBPlus PrimeraHoja()
     {
         NodoBPlus actual = raiz;
@@ -270,12 +569,11 @@ public class ArbolBPlus
         return actual;
     }
 
-    // GUARDAR CSV
     public void GuardarCSV(string rutaArchivo)
     {
         using (StreamWriter sw = new StreamWriter(rutaArchivo, false))
         {
-            sw.WriteLine("Codigo,Titulo,Autor,Categoria,CopiasDisponibles,VecesPrestado");
+            sw.WriteLine("Codigo,Titulo,Autor,Categoria,CopiasDisponibles,CopiasTotales,VecesPrestado");
 
             NodoBPlus? hoja = PrimeraHoja();
             while (hoja != null)
@@ -289,7 +587,7 @@ public class ArbolBPlus
             }
         }
 
-        Console.WriteLine($"Datos guardados en '{rutaArchivo}'.");
+        Console.WriteLine($"Datos guardados exitosamente en '{rutaArchivo}'.");
     }
 
     private static string LibroACsv(Libro libro)
@@ -301,6 +599,7 @@ public class ArbolBPlus
             EscaparCampoCsv(libro.Autor),
             EscaparCampoCsv(libro.Categoria),
             libro.CopiasDisponibles.ToString(),
+            libro.CopiasTotales.ToString(),
             libro.VecesPrestado.ToString()
         });
     }
@@ -314,18 +613,17 @@ public class ArbolBPlus
         return campo;
     }
 
-    // CARGAR CSV
     public void CargarCSV(string rutaArchivo)
     {
         if (!File.Exists(rutaArchivo))
         {
-            Console.WriteLine($"No se encontró '{rutaArchivo}'. Se inicia con árbol vacío.");
+            Console.WriteLine($"No se encontró el archivo '{rutaArchivo}'. Se inicia con un árbol vacío.");
             return;
         }
 
         using (StreamReader sr = new StreamReader(rutaArchivo))
         {
-            string? linea = sr.ReadLine(); // saltar encabezado
+            string? linea = sr.ReadLine(); // Saltar encabezado
             int contador = 0;
 
             while ((linea = sr.ReadLine()) != null)
@@ -333,17 +631,20 @@ public class ArbolBPlus
                 if (string.IsNullOrWhiteSpace(linea)) continue;
 
                 string[] campos = ParsearLineaCsv(linea);
-                if (campos.Length < 6) continue;
+                if (campos.Length < 7) continue;
 
                 int codigo = int.Parse(campos[0]);
                 string titulo = campos[1];
                 string autor = campos[2];
                 string categoria = campos[3];
-                int copias = int.Parse(campos[4]);
-                int vecesPrestado = int.Parse(campos[5]);
+                int copiasDisponibles = int.Parse(campos[4]);
+                int copiasTotales = int.Parse(campos[5]);
+                int vecesPrestado = int.Parse(campos[6]);
 
-                Libro libro = new Libro(codigo, titulo, autor, categoria, copias);
-                libro.VecesPrestado = vecesPrestado;
+                Libro libro = new Libro(codigo, titulo, autor, categoria, copiasDisponibles, copiasTotales)
+                {
+                    VecesPrestado = vecesPrestado
+                };
 
                 Insertar(libro);
                 contador++;
@@ -353,7 +654,7 @@ public class ArbolBPlus
         }
     }
 
-    private const int NUM_COLUMNAS_CSV = 6;
+    private const int NUM_COLUMNAS_CSV = 7;
 
     private static string[] ParsearLineaCsv(string linea)
     {
