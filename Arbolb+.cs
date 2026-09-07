@@ -1,50 +1,6 @@
 ﻿using System;
 using System.IO;
 
-// CLASE LIBRO
-public class Libro
-{
-    public int Codigo { get; set; }
-    public string Titulo { get; set; }
-    public string Autor { get; set; }
-    public string Categoria { get; set; }
-    public int CopiasDisponibles { get; set; }
-    public int CopiasTotales { get; set; }
-    public int VecesPrestado { get; set; }
-
-    public Libro(int codigo, string titulo, string autor, string categoria, int copiasDisponibles, int? copiasTotales = null)
-    {
-        Codigo = codigo;
-        Titulo = titulo;
-        Autor = autor;
-        Categoria = categoria;
-        CopiasDisponibles = copiasDisponibles;
-        CopiasTotales = copiasTotales ?? copiasDisponibles;
-        VecesPrestado = 0;
-    }
-}
-
-// NODO B+
-public class NodoBPlus
-{
-    public bool Hoja { get; set; }
-    public int NumClaves { get; set; }
-    public int[] Claves { get; set; }
-    public Libro?[] Libros { get; set; }
-    public NodoBPlus?[] Hijos { get; set; }
-    public NodoBPlus? Siguiente { get; set; }
-
-    public NodoBPlus(int orden, bool hoja = true)
-    {
-        Hoja = hoja;
-        NumClaves = 0;
-        Claves = new int[orden];
-        Libros = new Libro?[orden];
-        Hijos = new NodoBPlus?[orden + 1];
-        Siguiente = null;
-    }
-}
-
 // ARBOL B+
 public class ArbolBPlus
 {
@@ -561,6 +517,63 @@ public class ArbolBPlus
         }
     }
 
+// Acceso a monticulos min heap y max heap
+
+    public int ContarLibros()
+    {
+        return ContarLibrosRecursivo(raiz);
+    }
+
+    private int ContarLibrosRecursivo(NodoBPlus nodo)
+    {
+        if (nodo.Hoja)
+        {
+            int total = 0;
+            for (int i = 0; i < nodo.NumClaves; i++)
+            {
+                if (nodo.Libros[i] != null) total++;
+            }
+            return total;
+        }
+
+        int suma = 0;
+        for (int i = 0; i <= nodo.NumClaves; i++)
+        {
+            if (nodo.Hijos[i] != null) suma += ContarLibrosRecursivo(nodo.Hijos[i]!);
+        }
+        return suma;
+    }
+
+    public Libro[] ObtenerTodosLosLibros()
+    {
+        int total = ContarLibros();
+        Libro[] arreglo = new Libro[total];
+        int indice = 0;
+        ObtenerLibrosRecursivo(raiz, arreglo, ref indice);
+        return arreglo;
+    }
+
+    private void ObtenerLibrosRecursivo(NodoBPlus nodo, Libro[] arreglo, ref int indice)
+    {
+        if (nodo.Hoja)
+        {
+            for (int i = 0; i < nodo.NumClaves; i++)
+            {
+                if (nodo.Libros[i] != null)
+                {
+                    arreglo[indice] = nodo.Libros[i]!;
+                    indice++;
+                }
+            }
+            return;
+        }
+
+        for (int i = 0; i <= nodo.NumClaves; i++)
+        {
+            if (nodo.Hijos[i] != null) ObtenerLibrosRecursivo(nodo.Hijos[i]!, arreglo, ref indice);
+        }
+    }
+
     // PERSISTENCIA EN CSV
     private NodoBPlus PrimeraHoja()
     {
@@ -708,138 +721,4 @@ public class ArbolBPlus
 
         return campos;
     }
-
-    // MAX HEAP (FUNCIONES, NO CLASE) - LIBROS MÁS PRESTADOS
-    // Trabaja sobre un arreglo de Libro ordenado como montículo máximo
-    // según VecesPrestado. Todo manual (2i+1, 2i+2, (i-1)/2), sin PriorityQueue.
-
-    public int ContarLibros()
-    {
-        return ContarLibrosRecursivo(raiz);
-    }
-
-    private int ContarLibrosRecursivo(NodoBPlus nodo)
-    {
-        if (nodo.Hoja)
-        {
-            int total = 0;
-            for (int i = 0; i < nodo.NumClaves; i++)
-            {
-                if (nodo.Libros[i] != null) total++;
-            }
-            return total;
-        }
-
-        int suma = 0;
-        for (int i = 0; i <= nodo.NumClaves; i++)
-        {
-            if (nodo.Hijos[i] != null) suma += ContarLibrosRecursivo(nodo.Hijos[i]!);
-        }
-        return suma;
-    }
-
-    public Libro[] ObtenerTodosLosLibros()
-    {
-        int total = ContarLibros();
-        Libro[] arreglo = new Libro[total];
-        int indice = 0;
-        ObtenerLibrosRecursivo(raiz, arreglo, ref indice);
-        return arreglo;
-    }
-
-    private void ObtenerLibrosRecursivo(NodoBPlus nodo, Libro[] arreglo, ref int indice)
-    {
-        if (nodo.Hoja)
-        {
-            for (int i = 0; i < nodo.NumClaves; i++)
-            {
-                if (nodo.Libros[i] != null)
-                {
-                    arreglo[indice] = nodo.Libros[i]!;
-                    indice++;
-                }
-            }
-            return;
-        }
-
-        for (int i = 0; i <= nodo.NumClaves; i++)
-        {
-            if (nodo.Hijos[i] != null) ObtenerLibrosRecursivo(nodo.Hijos[i]!, arreglo, ref indice);
-        }
-    }
-
-    private void HeapifyAbajo(Libro[] arreglo, int tamano, int indice)
-    {
-        int mayor = indice;
-        int izquierdo = 2 * indice + 1;
-        int derecho = 2 * indice + 2;
-
-        if (izquierdo < tamano && arreglo[izquierdo].VecesPrestado > arreglo[mayor].VecesPrestado) mayor = izquierdo;
-        if (derecho < tamano && arreglo[derecho].VecesPrestado > arreglo[mayor].VecesPrestado) mayor = derecho;
-
-        if (mayor != indice)
-        {
-            Libro temporal = arreglo[indice];
-            arreglo[indice] = arreglo[mayor];
-            arreglo[mayor] = temporal;
-            HeapifyAbajo(arreglo, tamano, mayor);
-        }
-    }
-
-    private void HeapifyArriba(Libro[] arreglo, int indice)
-    {
-        while (indice > 0)
-        {
-            int padre = (indice - 1) / 2;
-            if (arreglo[padre].VecesPrestado >= arreglo[indice].VecesPrestado) break;
-
-            Libro temporal = arreglo[indice];
-            arreglo[indice] = arreglo[padre];
-            arreglo[padre] = temporal;
-            indice = padre;
-        }
-    }
-
-    public void ConstruirMonticuloMax(Libro[] arreglo, int tamano)
-    {
-        int ultimoPadre = (tamano / 2) - 1;
-        for (int i = ultimoPadre; i >= 0; i--) HeapifyAbajo(arreglo, tamano, i);
-    }
-
-    public void InsertarEnMonticulo(Libro[] arreglo, ref int tamano, Libro libro)
-    {
-        arreglo[tamano] = libro;
-        HeapifyArriba(arreglo, tamano);
-        tamano++;
-    }
-
-    public Libro? ExtraerMaximo(Libro[] arreglo, ref int tamano)
-    {
-        if (tamano == 0) return null;
-
-        Libro maximo = arreglo[0];
-        tamano--;
-        arreglo[0] = arreglo[tamano];
-        arreglo[tamano] = null!;
-        HeapifyAbajo(arreglo, tamano, 0);
-
-        return maximo;
-    }
-
-    public void MostrarTopPrestados(int cantidad)
-    {
-        Libro[] arreglo = ObtenerTodosLosLibros();
-        int tamano = arreglo.Length;
-        ConstruirMonticuloMax(arreglo, tamano);
-
-        int limite = cantidad < tamano ? cantidad : tamano;
-        Console.WriteLine($"--- Top {limite} libros más prestados ---");
-
-        for (int i = 1; i <= limite; i++)
-        {
-            Libro? libro = ExtraerMaximo(arreglo, ref tamano);
-            if (libro != null) Console.WriteLine($"{i}. {libro.Titulo} (código {libro.Codigo}) - {libro.VecesPrestado} préstamos");
-        }
-    }
 }
-
