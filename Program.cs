@@ -98,7 +98,6 @@ class Program
         arbol.Devolver(codigo);
     }
 
-    // MAX HEAP: en tu archivo el método se llama "MostrarmasPrestados".
     static void TopPrestadosDesdeMenu()
     {
         Console.Write("¿Cuántos libros de los mas pretados quieres ver?: ");
@@ -108,7 +107,6 @@ class Program
         MonticulosLibros.MostrarmasPrestados(libros, cantidad);
     }
 
-    // MIN HEAP: en tu archivo el método se llama "Mostrar" (dentro de MonticulosLibros).
     static void MenosCopiasDesdeMenu()
     {
         Console.Write("¿Cuántos libros quieres ver con menos copias?: ");
