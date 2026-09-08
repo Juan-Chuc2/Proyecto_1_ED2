@@ -1,16 +1,16 @@
-﻿Codigo,Titulo,Autor,Categoria,Copias Disponibles,Prestamos
-1,El Principito,Antoine de Saint-Exupéry,Literatura,4,18
-2,Clean Code,Robert C. Martin,Tecnología,2,31
-3,Cien años de soledad,Gabriel García Márquez,Literatura,5,24
-4,Introducción a los algoritmos,Cormen et al.,Tecnología,3,12
-5,1984,George Orwell,Literatura,2,27
-6,El universo en una cáscara de nuez,Stephen Hawking,Ciencia,3,9
-7,Don Quijote de la Mancha,Miguel de Cervantes,Literatura,4,15
-8,Cosmos,Carl Sagan,Ciencia,2,21
-9,Design Patterns,Gamma et al.,Tecnología,1,34
-10,Breve historia del tiempo,Stephen Hawking,Ciencia,3,6
-11,Dune,Frank Herbert,Ciencia Ficción,2,19
-12,El hobbit,J.R.R. Tolkien,Fantasía,4,22
-13,Fundamentos de bases de datos,Elmasri y Navathe,Tecnología,3,11
-14,La guerra de los mundos,H.G. Wells,Ciencia Ficción,2,16
-15,Sapiens,Yuval Noah Harari,Historia,3,28
+﻿Codigo,Titulo,Autor,Categoria,CopiasDisponibles,CopiasTotales,Prestamos
+1,El Principito,Antoine de Saint-Exupéry,Literatura,4,4,18
+2,Clean Code,Robert C. Martin,Tecnología,2,2,31
+3,Cien años de soledad,Gabriel García Márquez,Literatura,5,5,24
+4,Introducción a los algoritmos,Cormen et al.,Tecnología,3,3,12
+5,1984,George Orwell,Literatura,2,2,27
+6,El universo en una cáscara de nuez,Stephen Hawking,Ciencia,3,3,9
+7,Don Quijote de la Mancha,Miguel de Cervantes,Literatura,4,4,15
+8,Cosmos,Carl Sagan,Ciencia,2,2,21
+9,Design Patterns,Gamma et al.,Tecnología,1,1,34
+10,Breve historia del tiempo,Stephen Hawking,Ciencia,3,3,6
+11,Dune,Frank Herbert,Ciencia Ficción,2,2,19
+12,El hobbit,J.R.R. Tolkien,Fantasía,4,4,22
+13,Fundamentos de bases de datos,Elmasri y Navathe,Tecnología,3,3,11
+14,La guerra de los mundos,H.G. Wells,Ciencia Ficción,2,2,16
+15,Sapiens,Yuval Noah Harari,Historia,3,3,28
