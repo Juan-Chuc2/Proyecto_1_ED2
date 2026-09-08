@@ -20,7 +20,7 @@ class Program
             Console.WriteLine("5. Devolver libro");
             Console.WriteLine("6. Mostrar todos los libros");
             Console.WriteLine("7. Mostrar estructura del árbol");
-            Console.WriteLine("8. Top libros más prestados");
+            Console.WriteLine("8. Libros más prestados");
             Console.WriteLine("9. Libros con menos copias disponibles");
             Console.WriteLine("10. Guardar y salir");
             Console.Write("Opción: ");
