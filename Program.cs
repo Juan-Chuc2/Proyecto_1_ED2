@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 
 class Program
 {
@@ -101,7 +101,7 @@ class Program
     // MAX HEAP: en tu archivo el método se llama "MostrarmasPrestados".
     static void TopPrestadosDesdeMenu()
     {
-        Console.Write("¿Cuántos libros quieres ver en el top?: ");
+        Console.Write("¿Cuántos libros de los mas pretados quieres ver?: ");
         int cantidad = int.Parse(Console.ReadLine()!);
 
         Libro[] libros = arbol.ObtenerTodosLosLibros();
