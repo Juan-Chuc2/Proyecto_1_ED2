@@ -608,16 +608,16 @@ public class ArbolBPlus
         return string.Join(",", new string[]
         {
             libro.Codigo.ToString(),
-            EscaparCampoCsv(libro.Titulo),
-            EscaparCampoCsv(libro.Autor),
-            EscaparCampoCsv(libro.Categoria),
+            ErroresCsv(libro.Titulo),
+            ErroresCsv(libro.Autor),
+            ErroresCsv(libro.Categoria),
             libro.CopiasDisponibles.ToString(),
             libro.CopiasTotales.ToString(),
             libro.VecesPrestado.ToString()
         });
     }
 
-    private static string EscaparCampoCsv(string campo)
+    private static string ErroresCsv(string campo)
     {
         if (campo.Contains(',') || campo.Contains('"') || campo.Contains('\n'))
         {
@@ -643,7 +643,7 @@ public class ArbolBPlus
             {
                 if (string.IsNullOrWhiteSpace(linea)) continue;
 
-                string[] campos = ParsearLineaCsv(linea);
+                string[] campos = LineaCsv(linea);
                 if (campos.Length < 7) continue;
 
                 int codigo = int.Parse(campos[0]);
@@ -669,7 +669,7 @@ public class ArbolBPlus
 
     private const int NUM_COLUMNAS_CSV = 7;
 
-    private static string[] ParsearLineaCsv(string linea)
+    private static string[] LineaCsv(string linea)
     {
         string[] campos = new string[NUM_COLUMNAS_CSV];
         string actual = "";
