@@ -143,7 +143,7 @@ public static class MonticulosLibros
         return minimo;
     }
 
-    // Reporte: de libros con menos copias disponibles. También
+    // Reporte: de libros con menos copias disponibles.
     public static void Mostrar(Libro[] libros, int cantidad)
     {
         int tamano = libros.Length;

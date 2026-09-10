@@ -1,4 +1,4 @@
-﻿Codigo,Titulo,Autor,Categoria,CopiasDisponibles,CopiasTotales,Prestamos
+Codigo,Titulo,Autor,Categoria,CopiasDisponibles,CopiasTotales,VecesPrestado
 1,El Principito,Antoine de Saint-Exupéry,Literatura,4,4,18
 2,Clean Code,Robert C. Martin,Tecnología,2,2,31
 3,Cien años de soledad,Gabriel García Márquez,Literatura,5,5,24
